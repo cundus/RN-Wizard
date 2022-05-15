@@ -35,16 +35,6 @@ const Alerts = () => {
               Harap isi semua form yang dibutuhkan
             </Text>
           </HStack>
-          <IconButton
-            variant="unstyled"
-            _focus={{
-              borderWidth: 0,
-            }}
-            icon={<CloseIcon size="3" />}
-            _icon={{
-              color: 'coolGray.600',
-            }}
-          />
         </HStack>
       </VStack>
     </Alert>
@@ -70,6 +60,10 @@ const Biodata = ({navigation}) => {
   const [url, setUrl] = React.useState('provinsi');
   const [dataAddress, setDataAddress] = React.useState({});
   const [dataSheet, setDataSheet] = React.useState([]);
+
+  console.log(address.provinsi, 'provinsi');
+  console.log(dataAddress.kota_kabupaten, 'DATA ADDRESS');
+  console.log(dataSheet, 'DATA SHEET');
 
   const onChangeText = (key, value) => {
     setData({...data, [key]: value});
@@ -112,13 +106,25 @@ const Biodata = ({navigation}) => {
         kecamatan: {},
         kelurahan: {},
       });
+      setDataAddress({
+        ...dataAddress,
+        kota_kabupaten: [],
+        kecamatan: [],
+        kelurahan: [],
+      });
     } else if (urlParam === 'kota') {
-      setAddress({...address, kota_kabupaten: value});
+      setAddress({
+        ...address,
+        kota_kabupaten: value,
+        kecamatan: {},
+        kelurahan: {},
+      });
     } else if (urlParam === 'kecamatan') {
-      setAddress({...address, kecamatan: value});
+      setAddress({...address, kecamatan: value, kelurahan: {}});
     } else if (urlParam === 'kelurahan') {
       setAddress({...address, kelurahan: value});
     }
+    setDataSheet([]);
   };
 
   const onPressNext = () => {
@@ -131,8 +137,6 @@ const Biodata = ({navigation}) => {
       ...data,
       ...objectAddress,
     };
-
-    console.log(newData);
 
     //check if there is any empty field
     const emptyField = Object.keys(newData).find(key => {
@@ -154,24 +158,37 @@ const Biodata = ({navigation}) => {
   };
 
   React.useEffect(() => {
-    getData(url ?? 'provinsi').then(res => {
-      setDataAddress({...dataAddress, provinsi: res.provinsi});
+    getData('provinsi').then(res => {
+      setDataAddress({
+        provinsi: res.provinsi,
+        kota_kabupaten: [],
+        kecamatan: [],
+        kelurahan: [],
+      });
     });
   }, []);
 
-  React.useMemo(
-    () =>
-      getData('kota?id_provinsi=' + address.provinsi.id).then(res => {
-        setDataAddress({...dataAddress, kota_kabupaten: res.kota_kabupaten});
-      }),
-    [address.provinsi.id],
-  );
+  React.useEffect(() => {
+    getData('kota?id_provinsi=' + address.provinsi.id).then(res => {
+      setDataAddress({
+        ...dataAddress,
+        kota_kabupaten: res.kota_kabupaten,
+        kecamatan: [],
+        kelurahan: [],
+      });
+    });
+  }, [address.provinsi.id]);
 
   React.useMemo(
     () =>
       getData('kecamatan?id_kota=' + address.kota_kabupaten.id).then(res => {
-        setDataAddress({...dataAddress, kecamatan: res.kecamatan});
+        setDataAddress({
+          ...dataAddress,
+          kecamatan: res.kecamatan,
+          kelurahan: [],
+        });
       }),
+
     [address.kota_kabupaten.id],
   );
 
@@ -180,6 +197,7 @@ const Biodata = ({navigation}) => {
       getData('kelurahan?id_kecamatan=' + address.kecamatan.id).then(res => {
         setDataAddress({...dataAddress, kelurahan: res.kelurahan});
       }),
+
     [address.kecamatan.id],
   );
 
