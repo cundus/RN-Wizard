@@ -24,6 +24,6 @@ Ini adalah Task Test Teknikal dari seru.app
 
 ## `note`:
 
-- file Apk sudah include dalam repository ini.
+- file Apk sudah include dalam repository ini dalam folder ./apk .
 - validasi untuk form input tidak boleh kosong, hanya dihandle dengan toast notification.
 - untuk result berupa json dirender dalam Webview
