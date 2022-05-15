@@ -10,6 +10,11 @@ import {
   Text,
   VStack,
   Pressable,
+  Alert,
+  HStack,
+  CloseIcon,
+  IconButton,
+  useToast,
 } from 'native-base';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import Header from '../components/Header';
@@ -20,6 +25,23 @@ const {width, height} = Dimensions.get('window');
 import Entypo from 'react-native-vector-icons/Entypo';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import TextRecognition from 'react-native-text-recognition';
+
+const Alerts = () => {
+  return (
+    <Alert w="100%" status="error">
+      <VStack space={2} flexShrink={1} w="100%">
+        <HStack flexShrink={1} space={2} justifyContent="space-between">
+          <HStack space={2} flexShrink={1}>
+            <Alert.Icon mt="1" />
+            <Text fontSize="md" color="coolGray.800">
+              Harap isi semua form yang dibutuhkan
+            </Text>
+          </HStack>
+        </HStack>
+      </VStack>
+    </Alert>
+  );
+};
 
 const PendingView = () => (
   <Box
@@ -33,6 +55,7 @@ const PendingView = () => (
 );
 
 const PhotoUpload = ({navigation}) => {
+  const toast = useToast();
   const wizardContext = React.useContext(WizardContext);
   const {state, dispatch} = wizardContext;
   const camera = React.useRef(null);
@@ -130,7 +153,10 @@ const PhotoUpload = ({navigation}) => {
     });
 
     if (isEmpty) {
-      return console.log(isEmpty);
+      return toast.show({
+        render: () => <Alert />,
+        placement: 'top',
+      });
     }
 
     dispatch({type: 'SET_DATA', payload: photo});
