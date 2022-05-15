@@ -6,27 +6,12 @@ import Result from '../screens/Result';
 export const WizardContext = createContext();
 
 const initialState = {
-  currentStep: 0,
-  steps: [
-    {
-      title: 'Biodata',
-      content: <Biodata />,
-    },
-    {
-      title: 'Upload Photo',
-      content: <PhotoUpload />,
-    },
-    {
-      title: 'Result',
-      content: <Result />,
-    },
-  ],
   data: {
     firstName: '',
     lastName: '',
     biodata: '',
     provinsi: '',
-    kota: '',
+    kota_kabupaten: '',
     kecamatan: '',
     kelurahan: '',
     selfie: {},

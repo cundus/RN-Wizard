@@ -1,39 +1,8 @@
 import React from 'react';
-import {Box, Actionsheet, Input, Text, ScrollView} from 'native-base';
+import {Box, Actionsheet, Input, Text, ScrollView, Spinner} from 'native-base';
 import axios from 'axios';
 
-const Sheet = ({isOpen, onClose, url, onChangeSheet}) => {
-  const [data, setData] = React.useState([]);
-  console.log(data);
-  const getData = async () => {
-    try {
-      const response = await axios.get(
-        'http://dev.farizdotid.com/api/daerahindonesia/' + url,
-      );
-
-      const responseKey = Object.keys(response.data);
-      if (responseKey.includes('provinsi')) {
-        return setData(response.data.provinsi);
-      } else if (responseKey.includes('kota_kabupaten')) {
-        return setData(response.data.kota_kabupaten);
-      } else if (responseKey.includes('kecamatan')) {
-        return setData(response.data.kecamatan);
-      } else if (responseKey.includes('kelurahan')) {
-        return setData(response.data.kelurahan);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  React.useEffect(() => {
-    getData();
-
-    return () => {
-      setData(null);
-    };
-  }, [url]);
-
+const Sheet = ({isOpen, onClose, url, onChangeSheet, data}) => {
   const [search, setSearch] = React.useState('');
   const [searchResult, setSearchResult] = React.useState(data);
   const onChangeSearch = text => {
@@ -85,7 +54,7 @@ const Sheet = ({isOpen, onClose, url, onChangeSheet}) => {
                 }
               })
               .map((item, index) => (
-                <Actionsheet.Item onPress={() => onPressItem(item)}>
+                <Actionsheet.Item key={index} onPress={() => onPressItem(item)}>
                   {item.nama}
                 </Actionsheet.Item>
               ))}

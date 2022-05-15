@@ -2,22 +2,57 @@ import {Dimensions} from 'react-native';
 import React from 'react';
 import {WizardContext} from '../context/WizardContext';
 import {
+  Alert,
   Box,
   Button,
   ChevronDownIcon,
+  CloseIcon,
+  HStack,
+  IconButton,
   Input,
   Pressable,
   ScrollView,
   Text,
   TextArea,
   useDisclose,
+  useToast,
+  VStack,
 } from 'native-base';
 import Header from '../components/Header';
 import {globalStyle} from '../globalStyle/globalStyle';
 import Sheet from '../components/Sheet';
+import {getData} from '../API/api';
 const {width, height} = Dimensions.get('window');
 
+const Alerts = () => {
+  return (
+    <Alert w="100%" status="error">
+      <VStack space={2} flexShrink={1} w="100%">
+        <HStack flexShrink={1} space={2} justifyContent="space-between">
+          <HStack space={2} flexShrink={1}>
+            <Alert.Icon mt="1" />
+            <Text fontSize="md" color="coolGray.800">
+              Harap isi semua form yang dibutuhkan
+            </Text>
+          </HStack>
+          <IconButton
+            variant="unstyled"
+            _focus={{
+              borderWidth: 0,
+            }}
+            icon={<CloseIcon size="3" />}
+            _icon={{
+              color: 'coolGray.600',
+            }}
+          />
+        </HStack>
+      </VStack>
+    </Alert>
+  );
+};
+
 const Biodata = ({navigation}) => {
+  const toast = useToast();
   const {isOpen, onOpen, onClose} = useDisclose();
   const wizardContext = React.useContext(WizardContext);
   const {state, dispatch} = wizardContext;
@@ -32,7 +67,9 @@ const Biodata = ({navigation}) => {
     kecamatan: {},
     kelurahan: {},
   });
-  const [url, setUrl] = React.useState('');
+  const [url, setUrl] = React.useState('provinsi');
+  const [dataAddress, setDataAddress] = React.useState({});
+  const [dataSheet, setDataSheet] = React.useState([]);
 
   const onChangeText = (key, value) => {
     setData({...data, [key]: value});
@@ -41,20 +78,24 @@ const Biodata = ({navigation}) => {
   const onClickSheet = param => {
     if (param === 'provinsi') {
       setUrl('provinsi');
+      setDataSheet(dataAddress.provinsi);
     } else if (param === 'kota') {
       if (!address.provinsi.id) {
         return;
       }
+      setDataSheet(dataAddress.kota_kabupaten);
       setUrl('kota?id_provinsi=' + address.provinsi.id);
     } else if (param === 'kecamatan') {
       if (!address.kota_kabupaten.id) {
         return;
       }
+      setDataSheet(dataAddress.kecamatan);
       setUrl('kecamatan?id_kota=' + address.kota_kabupaten.id);
     } else if (param === 'kelurahan') {
       if (!address.kecamatan.id) {
         return;
       }
+      setDataSheet(dataAddress.kelurahan);
       setUrl('kelurahan?id_kecamatan=' + address.kecamatan.id);
     }
 
@@ -62,8 +103,6 @@ const Biodata = ({navigation}) => {
   };
 
   const onChangeSheet = value => {
-    // console.log(value, url);
-
     const urlParam = url.split('?')[0];
 
     if (urlParam === 'provinsi') {
@@ -88,25 +127,72 @@ const Biodata = ({navigation}) => {
       objectAddress[key] = address[key].nama;
     });
 
+    const newData = {
+      ...data,
+      ...objectAddress,
+    };
+
+    console.log(newData);
+
+    //check if there is any empty field
+    const emptyField = Object.keys(newData).find(key => {
+      return newData[key] === '' || newData[key] === undefined;
+    });
+
+    if (emptyField) {
+      return toast.show({
+        placement: 'top',
+        render: () => <Alerts />,
+      });
+    }
+
     dispatch({
       type: 'SET_DATA',
-      payload: {
-        ...data,
-        ...objectAddress,
-      },
+      payload: newData,
     });
     navigation.navigate('Upload');
   };
 
+  React.useEffect(() => {
+    getData(url ?? 'provinsi').then(res => {
+      setDataAddress({...dataAddress, provinsi: res.provinsi});
+    });
+  }, []);
+
+  React.useMemo(
+    () =>
+      getData('kota?id_provinsi=' + address.provinsi.id).then(res => {
+        setDataAddress({...dataAddress, kota_kabupaten: res.kota_kabupaten});
+      }),
+    [address.provinsi.id],
+  );
+
+  React.useMemo(
+    () =>
+      getData('kecamatan?id_kota=' + address.kota_kabupaten.id).then(res => {
+        setDataAddress({...dataAddress, kecamatan: res.kecamatan});
+      }),
+    [address.kota_kabupaten.id],
+  );
+
+  React.useMemo(
+    () =>
+      getData('kelurahan?id_kecamatan=' + address.kecamatan.id).then(res => {
+        setDataAddress({...dataAddress, kelurahan: res.kelurahan});
+      }),
+    [address.kecamatan.id],
+  );
+
   return (
     <Box flex={1}>
-      <Header title={'Biodata'} />
+      <Header title={'Biodata'} leftOnPress={() => navigation.goBack()} />
 
       <ScrollView {...globalStyle.container}>
         <Box {...globalStyle.inputContainer}>
           <Text {...globalStyle.label}>First Name</Text>
           <Input
             {...globalStyle.input}
+            placeholder="First Name"
             value={data.firstName}
             onChangeText={value => onChangeText('firstName', value)}
           />
@@ -115,6 +201,7 @@ const Biodata = ({navigation}) => {
           <Text {...globalStyle.label}>Last Name</Text>
           <Input
             {...globalStyle.input}
+            placeholder="Last Name"
             value={data.lastName}
             onChangeText={value => onChangeText('lastName', value)}
           />
@@ -123,6 +210,7 @@ const Biodata = ({navigation}) => {
           <Text {...globalStyle.label}>Biodata</Text>
           <TextArea
             {...globalStyle.input}
+            placeholder="Biodata"
             value={data.biodata}
             onChangeText={value => onChangeText('biodata', value)}
           />
@@ -134,6 +222,7 @@ const Biodata = ({navigation}) => {
               {...globalStyle.input}
               editable={false}
               borderColor="black"
+              placeholder="Provinsi"
               value={address.provinsi.nama}
               rightElement={<ChevronDownIcon mr={2} color="black" />}
             />
@@ -146,6 +235,7 @@ const Biodata = ({navigation}) => {
               {...globalStyle.input}
               editable={false}
               borderColor="black"
+              placeholder="Kota"
               value={address.kota_kabupaten?.nama}
               rightElement={<ChevronDownIcon mr={2} color="black" />}
             />
@@ -158,6 +248,7 @@ const Biodata = ({navigation}) => {
               {...globalStyle.input}
               editable={false}
               borderColor="black"
+              placeholder="Kecamatan"
               value={address.kecamatan?.nama}
               rightElement={<ChevronDownIcon mr={2} color="black" />}
             />
@@ -170,6 +261,7 @@ const Biodata = ({navigation}) => {
               {...globalStyle.input}
               editable={false}
               borderColor="black"
+              placeholder="Kelurahan"
               value={address.kelurahan?.nama}
               rightElement={<ChevronDownIcon mr={2} color="black" />}
             />
@@ -187,6 +279,7 @@ const Biodata = ({navigation}) => {
         isOpen={isOpen}
         onClose={onClose}
         url={url}
+        data={dataSheet}
         onChangeSheet={onChangeSheet}
       />
     </Box>
