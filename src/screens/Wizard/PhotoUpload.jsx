@@ -1,5 +1,5 @@
 import React from 'react';
-import {WizardContext} from '../context/WizardContext';
+import {WizardContext} from '../../context/WizardContext';
 import {RNCamera} from 'react-native-camera';
 import {
   Box,
@@ -17,9 +17,8 @@ import {
   useToast,
 } from 'native-base';
 import {TouchableOpacity} from 'react-native-gesture-handler';
-import Header from '../components/Header';
-import PhotoPlaceholder from '../components/PhotoPlaceholder';
-import {globalStyle} from '../globalStyle/globalStyle';
+import PhotoPlaceholder from '../../components/PhotoPlaceholder';
+import {globalStyle} from '../../globalStyle/globalStyle';
 import {Dimensions} from 'react-native';
 const {width, height} = Dimensions.get('window');
 import Entypo from 'react-native-vector-icons/Entypo';
@@ -54,7 +53,7 @@ const PendingView = () => (
   </Box>
 );
 
-const PhotoUpload = ({navigation}) => {
+const PhotoUpload = () => {
   const toast = useToast();
   const wizardContext = React.useContext(WizardContext);
   const {state, dispatch} = wizardContext;
@@ -226,10 +225,6 @@ const PhotoUpload = ({navigation}) => {
         </RNCamera>
       ) : (
         <>
-          <Header
-            leftOnPress={() => navigation.goBack()}
-            title="Upload Photo"
-          />
           <ScrollView {...globalStyle.container}>
             {Object.keys(photo).map(
               (item, index) =>
@@ -274,7 +269,7 @@ const PhotoUpload = ({navigation}) => {
             )}
 
             <Button
-              onPress={onPressNext}
+              // onPress={onPressNext}
               style={{marginTop: 20}}
               mb={10}
               _text={{

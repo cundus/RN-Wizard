@@ -1,6 +1,6 @@
 import {Dimensions} from 'react-native';
 import React from 'react';
-import {WizardContext} from '../context/WizardContext';
+import {WizardContext} from '../../context/WizardContext';
 import {
   Alert,
   Box,
@@ -18,10 +18,9 @@ import {
   useToast,
   VStack,
 } from 'native-base';
-import Header from '../components/Header';
-import {globalStyle} from '../globalStyle/globalStyle';
-import Sheet from '../components/Sheet';
-import {getData} from '../API/api';
+import {globalStyle} from '../../globalStyle/globalStyle';
+import Sheet from '../../components/Sheet';
+import {getData} from '../../API/api';
 const {width, height} = Dimensions.get('window');
 
 const Alerts = () => {
@@ -60,10 +59,6 @@ const Biodata = ({navigation}) => {
   const [url, setUrl] = React.useState('provinsi');
   const [dataAddress, setDataAddress] = React.useState({});
   const [dataSheet, setDataSheet] = React.useState([]);
-
-  console.log(address.provinsi, 'provinsi');
-  console.log(dataAddress.kota_kabupaten, 'DATA ADDRESS');
-  console.log(dataSheet, 'DATA SHEET');
 
   const onChangeText = (key, value) => {
     setData({...data, [key]: value});
@@ -154,7 +149,9 @@ const Biodata = ({navigation}) => {
       type: 'SET_DATA',
       payload: newData,
     });
-    navigation.navigate('Upload');
+    dispatch({
+      type: 'NEXT_STEP',
+    });
   };
 
   React.useEffect(() => {
@@ -203,8 +200,6 @@ const Biodata = ({navigation}) => {
 
   return (
     <Box flex={1}>
-      <Header title={'Biodata'} leftOnPress={() => navigation.goBack()} />
-
       <ScrollView {...globalStyle.container}>
         <Box {...globalStyle.inputContainer}>
           <Text {...globalStyle.label}>First Name</Text>

@@ -1,11 +1,30 @@
 import React, {useReducer, createContext} from 'react';
-import Biodata from '../screens/Biodata';
-import PhotoUpload from '../screens/PhotoUpload';
-import Result from '../screens/Result';
+import {Biodata, PhotoUpload, Result} from '../screens/Wizard';
 
 export const WizardContext = createContext();
 
 const initialState = {
+  currentStep: 0,
+  steps: [
+    {
+      title: 'Biodata',
+      component: () => <Biodata />,
+      key: 'biodata',
+      icon: 'idcard',
+    },
+    {
+      title: 'Photo Upload',
+      component: () => <PhotoUpload />,
+      key: 'photoUpload',
+      icon: 'camerao',
+    },
+    {
+      title: 'Result',
+      component: () => <Result />,
+      key: 'result',
+      icon: 'check',
+    },
+  ],
   data: {
     firstName: '',
     lastName: '',
@@ -41,6 +60,11 @@ const reducer = (state, action) => {
       }
       return state;
 
+    case 'SET_STEP':
+      return {
+        ...state,
+        currentStep: action.payload,
+      };
     case 'SET_DATA':
       const newData = {
         ...state.data,
@@ -50,6 +74,9 @@ const reducer = (state, action) => {
         ...state,
         data: newData,
       };
+
+    case 'RESET':
+      return initialState;
     default:
       return state;
   }

@@ -36,7 +36,7 @@ const Welcome = ({navigation}) => {
           w={60}
           borderRadius={60}
           mb={2}
-          onPress={() => navigation.navigate('Biodata')}>
+          onPress={() => navigation.navigate('Wizard')}>
           <AntDesign name="arrowright" size={30} color="white" />
         </Button>
         <Text fontSize="lg" fontWeight="bold">
