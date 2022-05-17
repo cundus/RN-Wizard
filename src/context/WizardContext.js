@@ -25,6 +25,7 @@ const initialState = {
       icon: 'check',
     },
   ],
+  captureMode: false,
   data: {
     firstName: '',
     lastName: '',
@@ -64,6 +65,11 @@ const reducer = (state, action) => {
       return {
         ...state,
         currentStep: action.payload,
+      };
+    case 'SET_CAPTURE_MODE':
+      return {
+        ...state,
+        captureMode: action.payload,
       };
     case 'SET_DATA':
       const newData = {

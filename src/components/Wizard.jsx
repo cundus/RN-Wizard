@@ -52,25 +52,34 @@ const Wizard = ({navigation}) => {
 
   return (
     <Box flex={1}>
-      <Header leftOnPress={() => navigation.goBack()} title="Wizard" />
-      <ScrollView flex={1} bg="white" pt={2}>
-        <FlatList
-          data={steps}
-          renderItem={_render}
-          keyExtractor={(item, index) => index.toString()}
-          horizontal={true}
-        />
+      {state.captureMode === false && (
+        <Header leftOnPress={() => navigation.goBack()} title="Wizard" />
+      )}
+      <ScrollView flex={1} bg="white">
+        {state.captureMode === false && (
+          <FlatList
+            data={steps}
+            renderItem={_render}
+            keyExtractor={(item, index) => index.toString()}
+            horizontal={true}
+            contentContainerStyle={{
+              paddingTop: 10,
+            }}
+          />
+        )}
         <Box flex={1}>
           {steps.map((screen, index) =>
             currentStep === index ? (
-              <>
-                <Text ml={3} mt={4} fontWeight="bold" fontSize="4xl">
-                  {screen.title}
-                </Text>
-                <Box key={index}>
+              <Box key={index} flex={1}>
+                {state.captureMode === false && (
+                  <Text ml={3} mt={4} fontWeight="bold" fontSize="4xl">
+                    {screen.title}
+                  </Text>
+                )}
+                <Box flex={1}>
                   <screen.component />
                 </Box>
-              </>
+              </Box>
             ) : null,
           )}
         </Box>

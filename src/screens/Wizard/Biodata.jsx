@@ -12,6 +12,7 @@ import {
   Input,
   Pressable,
   ScrollView,
+  Spinner,
   Text,
   TextArea,
   useDisclose,
@@ -46,22 +47,33 @@ const Biodata = ({navigation}) => {
   const wizardContext = React.useContext(WizardContext);
   const {state, dispatch} = wizardContext;
   const [data, setData] = React.useState({
-    firstName: '',
-    lastName: '',
-    biodata: '',
+    firstName: state.data.firstName,
+    lastName: state.data.lastName,
+    biodata: state.data.biodata,
   });
   const [address, setAddress] = React.useState({
-    provinsi: {},
-    kota_kabupaten: {},
-    kecamatan: {},
-    kelurahan: {},
+    provinsi: {
+      nama: state.data.provinsi,
+    },
+    kota_kabupaten: {
+      nama: state.data.kota_kabupaten,
+    },
+    kecamatan: {
+      nama: state.data.kecamatan,
+    },
+    kelurahan: {
+      nama: state.data.kelurahan,
+    },
   });
   const [url, setUrl] = React.useState('provinsi');
   const [dataAddress, setDataAddress] = React.useState({});
   const [dataSheet, setDataSheet] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  console.log(dataAddress.provinsi);
 
   const onChangeText = (key, value) => {
     setData({...data, [key]: value});
+    dispatch({type: 'SET_DATA', payload: {[key]: value}});
   };
 
   const onClickSheet = param => {
@@ -107,6 +119,7 @@ const Biodata = ({navigation}) => {
         kecamatan: [],
         kelurahan: [],
       });
+      dispatch({type: 'SET_DATA', payload: {provinsi: value}});
     } else if (urlParam === 'kota') {
       setAddress({
         ...address,
@@ -114,10 +127,13 @@ const Biodata = ({navigation}) => {
         kecamatan: {},
         kelurahan: {},
       });
+      dispatch({type: 'SET_DATA', payload: {kota_kabupaten: value}});
     } else if (urlParam === 'kecamatan') {
       setAddress({...address, kecamatan: value, kelurahan: {}});
+      dispatch({type: 'SET_DATA', payload: {kecamatan: value}});
     } else if (urlParam === 'kelurahan') {
       setAddress({...address, kelurahan: value});
+      dispatch({type: 'SET_DATA', payload: {kelurahan: value}});
     }
     setDataSheet([]);
   };
@@ -154,15 +170,20 @@ const Biodata = ({navigation}) => {
     });
   };
 
-  React.useEffect(() => {
-    getData('provinsi').then(res => {
-      setDataAddress({
-        provinsi: res.provinsi,
-        kota_kabupaten: [],
-        kecamatan: [],
-        kelurahan: [],
-      });
+  const getProv = async () => {
+    const res = await getData('provinsi');
+    setLoading(false);
+
+    setDataAddress({
+      provinsi: res.provinsi,
+      kota_kabupaten: [],
+      kecamatan: [],
+      kelurahan: [],
     });
+  };
+
+  React.useEffect(() => {
+    getProv();
   }, []);
 
   React.useEffect(() => {
@@ -197,6 +218,8 @@ const Biodata = ({navigation}) => {
 
     [address.kecamatan.id],
   );
+
+  if (loading) return <Spinner size="large" />;
 
   return (
     <Box flex={1}>

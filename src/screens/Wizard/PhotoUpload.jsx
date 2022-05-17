@@ -25,7 +25,7 @@ import Entypo from 'react-native-vector-icons/Entypo';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import TextRecognition from 'react-native-text-recognition';
 
-const Alerts = () => {
+const Alerts = props => {
   return (
     <Alert w="100%" status="error">
       <VStack space={2} flexShrink={1} w="100%">
@@ -33,7 +33,7 @@ const Alerts = () => {
           <HStack space={2} flexShrink={1}>
             <Alert.Icon mt="1" />
             <Text fontSize="md" color="coolGray.800">
-              Harap isi semua form yang dibutuhkan
+              {props.text}
             </Text>
           </HStack>
         </HStack>
@@ -59,46 +59,60 @@ const PhotoUpload = () => {
   const {state, dispatch} = wizardContext;
   const camera = React.useRef(null);
   const [photo, setPhoto] = React.useState({
-    ktp: {},
-    selfie: {},
-    bebas: {},
-    no_ktp: '',
+    ktp: state.data.ktp,
+    selfie: state.data.selfie,
+    bebas: state.data.bebas,
+    no_ktp: state.data.no_ktp,
   });
-  const [openCamera, setOpenCamera] = React.useState(false);
   const [cameraType, setCameraType] = React.useState(true);
   const [type, setType] = React.useState('');
   const [modalVisible, setModalVisible] = React.useState(false);
   const [photoPreview, setPhotoPreview] = React.useState({});
 
+  const afterCapture = async data => {
+    dispatch({type: 'SET_CAPTURE_MODE', payload: false});
+    dispatch({type: 'SET_DATA', payload: data});
+  };
+
   const takePicture = async () => {
     try {
-      const options = {quality: 0.5, base64: true};
+      const options = {quality: 0.5, base64: false};
       const data = await camera.current.takePictureAsync(options);
-
       if (type === 'ktp') {
-        const resultTextReader = await TextRecognition.recognize(data.uri, {
-          visionIgnoreThreshold: 0.5,
-        });
+        const resultTextReader = await TextRecognition.recognize(data.uri);
 
         if (resultTextReader.length > 0) {
           const result = resultTextReader.find(item => {
             let icNumber = item.replace(/\D/g, '');
             if (icNumber.match(/^[0-9]{16}$/)) {
-              console.log(icNumber);
               return icNumber;
             }
-
-            return '';
+            return false;
           });
+
+          console.log(result);
+
+          if (
+            result === '' ||
+            result === undefined ||
+            result === null ||
+            result === false
+          ) {
+            return toast.show({
+              render: () => <Alerts text="Harap gunakan KTP Anda!" />,
+            });
+          }
+
           setPhoto({...photo, no_ktp: result, ktp: data});
+          afterCapture({no_ktp: result, ktp: data});
         }
       } else if (type === 'selfie') {
         setPhoto({...photo, selfie: data});
+        afterCapture({selfie: data});
       } else if (type === 'bebas') {
         setPhoto({...photo, bebas: data});
+        afterCapture({bebas: data});
       }
-
-      setOpenCamera(false);
     } catch (error) {
       console.error(error);
     }
@@ -112,16 +126,19 @@ const PhotoUpload = () => {
     } else if (param === 'bebas') {
       setType('bebas');
     }
-    setOpenCamera(true);
+    dispatch({type: 'SET_CAPTURE_MODE', payload: true});
   };
 
   const onClickDelete = param => {
     if (param === 'ktp') {
       setPhoto({...photo, ktp: {}});
+      dispatch({type: 'SET_DATA', payload: {ktp: {}, no_ktp: ''}});
     } else if (param === 'selfie') {
       setPhoto({...photo, selfie: {}});
+      dispatch({type: 'SET_DATA', payload: {selfie: {}}});
     } else if (param === 'bebas') {
       setPhoto({...photo, bebas: {}});
+      dispatch({type: 'SET_DATA', payload: {bebas: {}}});
     }
   };
 
@@ -153,23 +170,23 @@ const PhotoUpload = () => {
 
     if (isEmpty) {
       return toast.show({
-        render: () => <Alert />,
+        render: () => <Alerts text="Harap isi semua form!" />,
         placement: 'top',
       });
     }
 
     dispatch({type: 'SET_DATA', payload: photo});
-    navigation.navigate('Result');
+    dispatch({type: 'NEXT_STEP'});
   };
 
   return (
     <Box flex={1}>
-      {openCamera ? (
+      {state.captureMode ? (
         <RNCamera
           ref={ref => {
             camera.current = ref;
           }}
-          style={{flex: 1}}
+          style={{height: height, width: width}}
           type={
             cameraType
               ? RNCamera.Constants.Type.back
@@ -204,7 +221,11 @@ const PhotoUpload = () => {
                   left: 0,
                   right: 0,
                 }}>
-                <Button variant="unstyled" onPress={() => setOpenCamera(false)}>
+                <Button
+                  variant="unstyled"
+                  onPress={() =>
+                    dispatch({type: 'SET_CAPTURE_MODE', payload: false})
+                  }>
                   <Entypo name="cross" size={35} color="white" />
                 </Button>
                 <Button
@@ -269,7 +290,7 @@ const PhotoUpload = () => {
             )}
 
             <Button
-              // onPress={onPressNext}
+              onPress={onPressNext}
               style={{marginTop: 20}}
               mb={10}
               _text={{
