@@ -27,3 +27,4 @@ Ini adalah Task Test Teknikal dari seru.app
 - file Apk sudah include dalam repository ini dalam folder ./apk .
 - validasi untuk form input tidak boleh kosong, hanya dihandle dengan toast notification.
 - untuk result berupa json dirender dalam Webview
+- ada 1 kendala yang belum diketahui, yaitu banyaknya rerendering pada saat fetch data untuk dropdown sehingga terkadang option di dropdown jadi kosong.
